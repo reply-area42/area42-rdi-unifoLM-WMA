@@ -4,6 +4,7 @@ import numpy as np
 import pinocchio as pin
 from pinocchio import casadi as cpin
 from pinocchio.visualize import MeshcatVisualizer
+import os
 
 from unitree_deploy.utils.weighted_moving_filter import WeightedMovingFilter
 
@@ -15,16 +16,27 @@ class G1_29_ArmIK:
         self.unit_test = unit_test
         self.visualization = visualization
 
-        if not self.unit_test:
-            self.robot = pin.RobotWrapper.BuildFromURDF(
-                "unitree_deploy/robot_devices/assets/g1/g1_body29_hand14.urdf",
-                "unitree_deploy/robot_devices/assets/g1/",
-            )
-        else:
-            self.robot = pin.RobotWrapper.BuildFromURDF(
-                "unitree_deploy/robot_devices/assets/g1/g1_body29_hand14.urdf",
-                "unitree_deploy/robot_devices/assets/g1/",
-            )  # for test
+        G1_ASSETS_DIR = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            "..", "assets", "g1"
+        )
+ 
+        # poi nel __init__:
+        self.robot = pin.RobotWrapper.BuildFromURDF(
+            os.path.join(G1_ASSETS_DIR, "g1_body29_hand14.urdf"),
+            G1_ASSETS_DIR,
+        )
+
+        # if not self.unit_test:
+        #     self.robot = pin.RobotWrapper.BuildFromURDF(
+        #         "unitree_deploy/robot_devices/assets/g1/g1_body29_hand14.urdf",
+        #         "unitree_deploy/robot_devices/assets/g1/",
+        #     )
+        # else:
+        #     self.robot = pin.RobotWrapper.BuildFromURDF(
+        #         "unitree_deploy/robot_devices/assets/g1/g1_body29_hand14.urdf",
+        #         "unitree_deploy/robot_devices/assets/g1/",
+        #     )  # for test
 
         self.mixed_jointsToLockIDs = [
             "left_hip_pitch_joint",

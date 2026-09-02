@@ -128,3 +128,8 @@ Data/Pretrained
 Data/utils.py
 Experiment/checkpoint
 Experiment/log
+
+# do not track model weights
+checkpoints/
+outputs/
+wma_training_datasets/

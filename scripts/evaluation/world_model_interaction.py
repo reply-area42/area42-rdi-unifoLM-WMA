@@ -22,6 +22,10 @@ from torch import Tensor
 from torch.utils.tensorboard import SummaryWriter
 from PIL import Image
 
+import tempfile
+from pathlib import Path
+from torchcodec.encoders import VideoEncoder
+
 from unifolm_wma.models.samplers.ddim import DDIMSampler
 from unifolm_wma.utils.utils import instantiate_from_config
 
@@ -123,6 +127,32 @@ def is_inferenced(save_dir: str, filename: str) -> bool:
     return os.path.exists(video_file)
 
 
+# def save_results(video: Tensor, filename: str, fps: int = 8) -> None:
+#     """Save video tensor to file using torchvision.
+
+#     Args:
+#         video (Tensor): Tensor of shape (B, C, T, H, W).
+#         filename (str): Output file path.
+#         fps (int, optional): Frames per second. Defaults to 8.
+#     """
+#     video = video.detach().cpu()
+#     video = torch.clamp(video.float(), -1., 1.)
+#     n = video.shape[0]
+#     video = video.permute(2, 0, 1, 3, 4)
+
+#     frame_grids = [
+#         torchvision.utils.make_grid(framesheet, nrow=int(n), padding=0)
+#         for framesheet in video
+#     ]
+#     grid = torch.stack(frame_grids, dim=0)
+#     grid = (grid + 1.0) / 2.0
+#     grid = (grid * 255).to(torch.uint8).permute(0, 2, 3, 1)
+    # torchvision.io.write_video(filename,
+    #                            grid,
+    #                            fps=fps,
+    #                            video_codec='h264',
+    #                            options={'crf': '10'})
+
 def save_results(video: Tensor, filename: str, fps: int = 8) -> None:
     """Save video tensor to file using torchvision.
 
@@ -142,12 +172,16 @@ def save_results(video: Tensor, filename: str, fps: int = 8) -> None:
     ]
     grid = torch.stack(frame_grids, dim=0)
     grid = (grid + 1.0) / 2.0
-    grid = (grid * 255).to(torch.uint8).permute(0, 2, 3, 1)
-    torchvision.io.write_video(filename,
-                               grid,
-                               fps=fps,
-                               video_codec='h264',
-                               options={'crf': '10'})
+    # grid = (grid * 255).to(torch.uint8).permute(0, 2, 3, 1)
+    grid = (grid * 255).to(torch.uint8)
+
+    print(grid.shape)
+    # output_path = tempfile.NamedTemporaryFile(suffix=".mp4", delete=False).name
+    encoder = VideoEncoder(frames=grid, frame_rate=fps)
+    encoder.to_file(filename, codec="libx264")
+    # print(f"Encoded to {output_path}, size: {Path(output_path).stat().st_size} bytes")
+
+
 
 
 def get_init_frame_path(data_dir: str, sample: dict) -> str:

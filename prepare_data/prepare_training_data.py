@@ -11,6 +11,15 @@ from pathlib import Path
 from safetensors.torch import save_file
 from tqdm import tqdm
 
+"""
+python prepare_training_data.py \
+    --source_dir /home/humanoid42/.cache/huggingface/lerobot/reply-area42 \
+    --target_dir /home/humanoid42/.cache/huggingface/lerobot/reply-area42/sprite_wma_v1_h5 \                        
+    --dataset_name "sprite_wma_v1" \
+    --robot_name "Unitree g1 with inspire hands"
+
+"""
+
 
 def flatten_dict(d, parent_key="", sep="/"):
     """Flatten a nested dictionary structure by collapsing nested keys into one key with a separator.

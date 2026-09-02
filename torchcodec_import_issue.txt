@@ -1,0 +1,17 @@
+pip install nvidia-npp-cu12
+
+# then find where it landed and expose it
+NVIDIA_NPP_LIB=$(python -c "import os, nvidia.npp; print(os.path.join(os.path.dirname(nvidia.npp.__file__), 'lib'))")
+export LD_LIBRARY_PATH=$NVIDIA_NPP_LIB:$CONDA_PREFIX/lib:$LD_LIBRARY_PATH
+
+
+echo "export LD_LIBRARY_PATH=\$(python -c \"import os, nvidia.npp; print(os.path.join(os.path.dirname(nvidia.npp.__file__), 'lib'))\"):\$CONDA_PREFIX/lib:\$LD_LIBRARY_PATH" \
+  >> $CONDA_PREFIX/etc/conda/activate.d/cuda_libs.sh
+
+
+find $CONDA_PREFIX -name "libnppicc.so.12" 2>/dev/null # likely something like: $CONDA_PREFIX/lib/python3.10/site-packages/nvidia/npp/lib/libnppicc.so.12
+
+
+export LD_LIBRARY_PATH=$(find $CONDA_PREFIX -name "libnppicc.so.12" -exec dirname {} \; | head -1):$CONDA_PREFIX/lib:$LD_LIBRARY_PATH
+echo $LD_LIBRARY_PATH  # verify it looks sane
+python -c "from torchcodec.encoders import VideoEncoder; print('OK')"

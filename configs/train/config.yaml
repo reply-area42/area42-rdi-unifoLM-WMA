@@ -1,5 +1,5 @@
 model:
-  pretrained_checkpoint: /path/to/pretrained/checkpoint
+  pretrained_checkpoint: /home/humanoid42/Workspace/unifolm-world-model-action/checkpoints/unifolm_wma_base.ckpt
   base_learning_rate: 1.0e-05
   scale_lr: False
   target: unifolm_wma.models.ddpms.LatentVisualDiffusion
@@ -229,7 +229,7 @@ data:
     train:
       target: unifolm_wma.data.wma_data.WMAData
       params:
-        data_dir: '/path/to/training/dataset/directory'
+        data_dir: /home/humanoid42/.cache/huggingface/lerobot/reply-area42/sprite_wma_v1_h5
         video_length: ${model.params.wma_config.params.temporal_length}
         frame_stride: 2
         load_raw_resolution: True
@@ -244,17 +244,13 @@ data:
         max_action_dim: ${model.params.agent_action_dim}
         max_state_dim: ${model.params.agent_state_dim}
     dataset_and_weights: 
-      unitree_z1_stackbox: 0.2
-      unitree_z1_dual_arm_stackbox: 0.2
-      unitree_z1_dual_arm_stackbox_v2: 0.2
-      unitree_z1_dual_arm_cleanup_pencils: 0.2
-      unitree_g1_pack_camera: 0.2
+      sprite_wma_v1: 1.0
 
 lightning:
   precision: 16
   trainer:
     benchmark: True
-    accumulate_grad_batches: 2
+    accumulate_grad_batches: 8
     max_steps: 300000
     log_every_n_steps: 50
     val_check_interval: 1.0
