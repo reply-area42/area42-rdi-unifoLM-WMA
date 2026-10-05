@@ -11,17 +11,22 @@
 
 
 # args
-name="sprite_wma_v1"
+name="sprite_wma_v1_sim"
 config_file=configs/train/config.yaml
 save_root="outputs/"
 
 mkdir -p $save_root/$name
 
-CUDA_VISIBLE_DEVICES=0 python3 ./scripts/trainer.py \
+export TORCH_CUDA_ARCH_LIST="12.0a"
+
+CUDA_VISIBLE_DEVICES=0 PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True python3 -m torch.distributed.launch \
+--nproc_per_node=1 --nnodes=1 --master_addr=127.0.0.1 --master_port=12366 --node_rank=0 \
+./scripts/trainer.py \
 --base $config_file \
 --train \
 --name $name \
 --logdir $save_root \
 --devices 1 \
 --total_gpus=1 \
-lightning.trainer.num_nodes=1
+lightning.trainer.num_nodes=1 \
+lightning.strategy=ddp

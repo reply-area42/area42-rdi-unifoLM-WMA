@@ -3,6 +3,8 @@ import torch
 import torch.nn as nn
 import einops
 
+import torch.nn.functional as F
+
 from einops import rearrange, repeat
 from typing import Union
 
@@ -73,6 +75,11 @@ class CrossAttention(nn.Module):
         self.to_out = nn.Sequential(nn.Linear(inner_dim, query_dim),
                                     nn.Dropout(dropout))
 
+    def _sdpa(self, q, k, v, attn_bias=None):
+        # q, k, v: (b*heads, seq, dim_head) -> SDPA li accetta come tensori 3D (N, L, E)
+        out = F.scaled_dot_product_attention(q, k, v, attn_mask=attn_bias)
+        return out
+
     def efficient_forward(self, x, context=None):
         spatial_self_attn = (context is None)
         k_ip, v_ip, out_ip = None, None, None
@@ -91,11 +98,7 @@ class CrossAttention(nn.Module):
             (q, k, v),
         )
         # actually compute the attention, what we cannot get enough of
-        out = xformers.ops.memory_efficient_attention(q,
-                                                      k,
-                                                      v,
-                                                      attn_bias=None,
-                                                      op=None)
+        out = self._sdpa(q, k, v, attn_bias=None)
         out = (out.unsqueeze(0).reshape(
             b, self.heads, out.shape[1],
             self.dim_head).permute(0, 2, 1,

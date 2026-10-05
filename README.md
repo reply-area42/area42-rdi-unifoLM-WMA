@@ -39,7 +39,7 @@ conda activate unifolm-wma
 conda install pinocchio=3.2.0 -c conda-forge -y
 conda install ffmpeg=7.1.1 -c conda-forge
 
-git clone --recurse-submodules https://github.com/unitreerobotics/unifolm-world-model-action.git
+git clone --recurse-submodules https://github.com/reply-area42/area42-rdi-unifoLM-WMA.git
 
 # If you already downloaded the repo:
 cd unifolm-world-model-action

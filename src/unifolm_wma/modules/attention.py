@@ -5,12 +5,13 @@ from torch import nn, einsum
 from einops import rearrange, repeat
 from functools import partial
 
-try:
-    import xformers
-    import xformers.ops
-    XFORMERS_IS_AVAILBLE = True
-except:
-    XFORMERS_IS_AVAILBLE = False
+# try:
+#     import xformers
+#     import xformers.ops
+#     XFORMERS_IS_AVAILBLE = True
+# except:
+#     XFORMERS_IS_AVAILBLE = False
+XFORMERS_IS_AVAILBLE = False
 
 from unifolm_wma.utils.common import (
     checkpoint,
@@ -230,6 +231,12 @@ class CrossAttention(nn.Module):
 
         return self.to_out(out)
 
+    def _sdpa(self, q, k, v, attn_bias=None):
+        # q, k, v: (b*heads, seq, dim_head) -> SDPA li accetta come tensori 3D (N, L, E)
+        out = F.scaled_dot_product_attention(q, k, v, attn_mask=attn_bias)
+        return out
+
+
     def efficient_forward(self, x, context=None, mask=None):
         spatial_self_attn = (context is None)
         k, v, out = None, None, None
@@ -292,11 +299,7 @@ class CrossAttention(nn.Module):
                         b * self.heads, t.shape[1], self.dim_head).contiguous(),
                 (k, v),
             )
-            out = xformers.ops.memory_efficient_attention(q,
-                                                          k,
-                                                          v,
-                                                          attn_bias=None,
-                                                          op=None)
+            out = self._sdpa(q, k, v, attn_bias=None)
             out = (out.unsqueeze(0).reshape(
                 b, self.heads, out.shape[1],
                 self.dim_head).permute(0, 2, 1,
@@ -312,11 +315,7 @@ class CrossAttention(nn.Module):
                         ),
                 (k_ip, v_ip),
             )
-            out_ip = xformers.ops.memory_efficient_attention(q,
-                                                             k_ip,
-                                                             v_ip,
-                                                             attn_bias=None,
-                                                             op=None)
+            out_ip = self._sdpa(q, k_ip, v_ip, attn_bias=None)
             out_ip = (out_ip.unsqueeze(0).reshape(
                 b, self.heads, out_ip.shape[1],
                 self.dim_head).permute(0, 2, 1,
@@ -332,11 +331,7 @@ class CrossAttention(nn.Module):
                         ),
                 (k_as, v_as),
             )
-            out_as = xformers.ops.memory_efficient_attention(q,
-                                                             k_as,
-                                                             v_as,
-                                                             attn_bias=None,
-                                                             op=None)
+            out_as = self._sdpa(q, k_as, v_as, attn_bias=None)
             out_as = (out_as.unsqueeze(0).reshape(
                 b, self.heads, out_as.shape[1],
                 self.dim_head).permute(0, 2, 1,
@@ -356,8 +351,7 @@ class CrossAttention(nn.Module):
                     b * self.heads, attn_mask_aa.shape[1], attn_mask_aa.shape[2])
             attn_mask_aa = attn_mask_aa.to(q.dtype)
 
-            out_aa = xformers.ops.memory_efficient_attention(
-                q, k_aa, v_aa, attn_bias=attn_mask_aa, op=None)
+            out_aa = self._sdpa(q, k_aa, v_aa, attn_bias=attn_mask_aa)
 
             out_aa = (out_aa.unsqueeze(0).reshape(
                 b, self.heads, out_aa.shape[1],

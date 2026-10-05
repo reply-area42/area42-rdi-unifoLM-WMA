@@ -2299,16 +2299,17 @@ class LatentVisualDiffusion(LatentDiffusion):
         if sample:
             uc = None
             with self.ema_scope("Plotting"):
-                samples, action_samples, state_samples, z_denoise_row = self.sample_log(
-                    cond=c,
-                    batch_size=N,
-                    ddim=use_ddim,
-                    ddim_steps=ddim_steps,
-                    eta=ddim_eta,
-                    unconditional_guidance_scale=unconditional_guidance_scale,
-                    unconditional_conditioning=uc,
-                    x0=z,
-                    **kwargs)
+                with torch.autocast(device_type="cuda", dtype=torch.bfloat16):
+                    samples, action_samples, state_samples, z_denoise_row = self.sample_log(
+                        cond=c,
+                        batch_size=N,
+                        ddim=use_ddim,
+                        ddim_steps=ddim_steps,
+                        eta=ddim_eta,
+                        unconditional_guidance_scale=unconditional_guidance_scale,
+                        unconditional_conditioning=uc,
+                        x0=z,
+                        **kwargs)
 
             x_samples = self.decode_first_stage(samples)
             log["samples"] = x_samples

@@ -1,8 +1,8 @@
 model_name=testing
-ckpt=/home/humanoid42/Workspace/unifolm-world-model-action/checkpoints/unifolm_wma_dual.ckpt
+ckpt=/home/humanoid42/Workspace/area42-rdi-unifoLM-WMA/checkpoints/unifolm_wma_dual.ckpt
 config=configs/inference/world_model_interaction.yaml
 seed=123
-res_dir="/home/humanoid42/Workspace/unifolm-world-model-action/outputs"
+res_dir="/home/humanoid42/Workspace/area42-rdi-unifoLM-WMA/outputs"
 
 datasets=(
     "unitree_z1_stackbox"
@@ -29,7 +29,7 @@ for i in "${!datasets[@]}"; do
     --unconditional_guidance_scale 1.0 \
     --ddim_steps 50 \
     --ddim_eta 1.0 \
-    --prompt_dir "/home/humanoid42/Workspace/unifolm-world-model-action/examples/world_model_interaction_prompts" \
+    --prompt_dir "/home/humanoid42/Workspace/area42-rdi-unifoLM-WMA/examples/world_model_interaction_prompts" \
     --dataset ${dataset} \
     --video_length 16 \
     --frame_stride ${fs} \

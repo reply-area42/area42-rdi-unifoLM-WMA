@@ -31,8 +31,17 @@ class DatasetEvalEnv:
         if self.visualization:
             self.rerun_logger = RerunLogger()
 
-        self.from_idx = self.dataset.episode_data_index["from"][episode_index].item()
-        self.to_idx = self.dataset.episode_data_index["to"][episode_index].item()
+        
+        if hasattr(self.dataset, "episode_data_index"):
+            # LeRobot v2.x
+            self.from_idx = self.dataset.episode_data_index["from"][episode_index].item()
+            self.to_idx = self.dataset.episode_data_index["to"][episode_index].item()
+        else:
+            # LeRobot v3.x
+            ep = self.dataset.meta.episodes[episode_index]
+            self.from_idx = int(ep["dataset_from_index"])
+            self.to_idx = int(ep["dataset_to_index"])
+
         self.step_idx = self.from_idx
 
         self.ground_truth_actions = []
@@ -99,7 +108,7 @@ def make_dataset_eval_env() -> DatasetEvalEnv:
 
 
 if __name__ == "__main__":
-    eval_dataset = DatasetEvalEnv(repo_id="unitreerobotics/G1_Brainco_PickApple_Dataset")
+    eval_dataset = DatasetEvalEnv(repo_id="reply-area42/sprite_wma_v1_v3.0")
     while True:
         observation = eval_dataset.get_observation()
         eval_dataset.step(observation["qpos"])
