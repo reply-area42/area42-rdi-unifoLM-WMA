@@ -126,6 +126,21 @@ def g1_image_client_default_factory():
         ),
     }
 
+def g1_image_client_inspire_factory():
+    return {
+        "imageclient": ImageClientCameraConfig(
+            head_camera_type="opencv",
+            head_camera_id_numbers=[4],
+            head_camera_image_shape=[480, 640],  # Head camera resolution
+            # wrist_camera_type="opencv",
+            # wrist_camera_id_numbers=[0, 2],
+            # wrist_camera_image_shape=[480, 640],  # Wrist camera resolution
+            aspect_ratio_threshold=2.0,
+            fps=30,
+            mock=False,
+        ),
+    }
+
 
 def usb_camera_default_factory():
     return {
@@ -312,7 +327,7 @@ class G1_Dex1_Imageclint_RobotConfig(UnitreeRobotConfig):
 @dataclass
 class G1_InspireVirtual_RobotConfig(UnitreeRobotConfig):
     cameras: dict[str, CameraConfig] = field(
-        default_factory=g1_image_client_default_factory
+        default_factory=g1_image_client_inspire_factory
     )
     arm: dict[str, ArmConfig] = field(
         default_factory=g1_dual_arm_default_factory

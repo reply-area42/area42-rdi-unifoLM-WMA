@@ -1,6 +1,6 @@
 model:
-  #pretrained_checkpoint: $HOME/Workspace/area42-rdi-unifoLM-WMA/checkpoints/unifolm_wma_base.ckpt
-  pretrained_checkpoint: $HOME/Workspace/area42-rdi-unifoLM-WMA/outputs/sprite_wma_v1_sim/checkpoints/epoch=478-step=11000.ckpt
+  pretrained_checkpoint: ${oc.env:HOME}/Workspace/area42-rdi-unifoLM-WMA/checkpoints/unifolm_wma_base.ckpt
+  #pretrained_checkpoint: ${oc.env:HOME}/Workspace/area42-rdi-unifoLM-WMA/outputs/sprite_wma_v1_sim/checkpoints/epoch=478-step=11000.ckpt
   base_learning_rate: 1.0e-05
   scale_lr: False
   target: unifolm_wma.models.ddpms.LatentVisualDiffusion
@@ -230,7 +230,7 @@ data:
     train:
       target: unifolm_wma.data.wma_data.WMAData
       params:
-        data_dir: $HOME/.cache/huggingface/lerobot/reply-area42/sprite_wma_v1_h5
+        data_dir: ${oc.env:HOME}/.cache/huggingface/lerobot/reply-area42/sprite_wma_v1_h5
         video_length: ${model.params.wma_config.params.temporal_length}
         frame_stride: 2
         load_raw_resolution: True

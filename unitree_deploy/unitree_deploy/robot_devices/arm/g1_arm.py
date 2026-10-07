@@ -92,7 +92,7 @@ class G1_29_ArmController:
                 time.sleep(1)
             else:
                 # initialize lowcmd publisher and lowstate subscriber
-                ChannelFactoryInitialize(0)
+                ChannelFactoryInitialize(0, "enp130s0")
                 self.lowcmd_publisher = ChannelPublisher(self.topic_low_command, LowCmd_)
                 self.lowcmd_publisher.Init()
                 self.lowstate_subscriber = ChannelSubscriber(self.topic_low_state, LowState_)

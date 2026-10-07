@@ -121,7 +121,7 @@ model:
             cond_cross_attention: False
             context_dims: []
             image_size: ${model.params.image_size}
-            imagen_cond_gradient: True/path/to/the/dataset/directory/that/contains/the/meta/folder/of/the/testing/case/under/a/transitions/folder
+            imagen_cond_gradient: True
             last_frame_only: False
             use_imagen_mid_only: False
             use_z_only: False
@@ -222,7 +222,7 @@ data:
     test:
       target: unifolm_wma.data.wma_data.WMAData
       params:
-        data_dir: '$HOME/Workspace/area42-rdi-unifoLM-WMA/prove' # e.g., /path/to/area42-rdi-unifoLM-WMA/examples/world_model_interaction_prompts
+        data_dir: '${oc.env:HOME}/Workspace/area42-rdi-unifoLM-WMA/prove' # e.g., /path/to/area42-rdi-unifoLM-WMA/examples/world_model_interaction_prompts
         video_length: ${model.params.wma_config.params.temporal_length}
         frame_stride: 2
         load_raw_resolution: True
