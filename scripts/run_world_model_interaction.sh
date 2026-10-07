@@ -1,15 +1,11 @@
 model_name=testing
-ckpt=/home/humanoid42/Workspace/area42-rdi-unifoLM-WMA/checkpoints/unifolm_wma_dual.ckpt
+ckpt=/home/humanoid42/Workspace/area42-rdi-unifoLM-WMA/outputs/sprite_wma_v1_sim/checkpoints/epoch=782-step=18000.ckpt
 config=configs/inference/world_model_interaction.yaml
 seed=123
 res_dir="/home/humanoid42/Workspace/area42-rdi-unifoLM-WMA/outputs"
 
 datasets=(
-    "unitree_z1_stackbox"
-    "unitree_z1_dual_arm_stackbox"
-    "unitree_z1_dual_arm_stackbox_v2"
-    "unitree_z1_dual_arm_cleanup_pencils"
-    "unitree_g1_pack_camera"
+    "sprite_wma_v1"
 )
 
 n_iters=(12 7 11 8 11)
@@ -29,7 +25,7 @@ for i in "${!datasets[@]}"; do
     --unconditional_guidance_scale 1.0 \
     --ddim_steps 50 \
     --ddim_eta 1.0 \
-    --prompt_dir "/home/humanoid42/Workspace/area42-rdi-unifoLM-WMA/examples/world_model_interaction_prompts" \
+    --prompt_dir "/home/humanoid42/Workspace/area42-rdi-unifoLM-WMA/prove" \
     --dataset ${dataset} \
     --video_length 16 \
     --frame_stride ${fs} \

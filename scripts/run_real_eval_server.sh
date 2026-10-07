@@ -1,10 +1,10 @@
 model_name=testing
-ckpt=/path/to/model/checkpoint
+ckpt=/home/humanoid42/Workspace/area42-rdi-unifoLM-WMA/outputs/sprite_wma_v1/checkpoints/trainstep_checkpoints/epoch=1521-step=35000.ckpt
 config=configs/inference/world_model_decision_making.yaml
 seed=123
-res_dir="path/to/results/directory"
+res_dir="/home/humanoid42/Workspace/area42-rdi-unifoLM-WMA/outputs/sprite_wma_v1_eval"
 datasets=(
-    "unitree_g1_pack_camera"
+    "sprite_wma_v1"
 )
 
 

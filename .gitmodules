@@ -1,3 +1,6 @@
 [submodule "external/dlimp"]
     path = external/dlimp
     url = https://github.com/kvablack/dlimp
+[submodule "unitree_sdk2_python"]
+	path = unitree_sdk2_python
+	url = https://github.com/unitreerobotics/unitree_sdk2_python.git
