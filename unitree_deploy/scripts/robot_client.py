@@ -31,16 +31,19 @@ INIT_POSE = {
     'g1_dex1': np.array([0.10559805, 0.02726714, -0.01210221, -0.33341318, -0.22513399, -0.02627627, -0.15437093,  0.1273793 , -0.1674708 , -0.11544029, -0.40095493,  0.44332668,  0.11566751,  0.3936641, 5.4, 5.4], dtype=np.float32),
     'z1_dual_dex1_realsense': np.array([-1.0262332,  1.4281361, -1.2149128,  0.6473399, -0.12425245, 0.44945636,  0.89584476,  1.2593982, -1.0737865,  0.6672816, 0.39730102, -0.47400007, 0.9894176, 0.9817477 ], dtype=np.float32),
     'z1_realsense': np.array([-0.06940782, 1.4751548, -0.7554075, 1.0501366, 0.02931615, -0.02810347, -0.99238837], dtype=np.float32),
+    'g1_inspire_virtual': np.array([0.10559805, 0.02726714, -0.01210221, -0.33341318, -0.22513399, -0.02627627, -0.15437093, 0.1273793, -0.1674708, -0.11544029, -0.40095493, 0.44332668, 0.11566751, 0.3936641, 5.4, 5.4, ], dtype=np.float32,)
 }
 ZERO_ACTION = {
     'g1_dex1': torch.zeros(16, dtype=torch.float32),
     'z1_dual_dex1_realsense': torch.zeros(14, dtype=torch.float32),
     'z1_realsense': torch.zeros(7, dtype=torch.float32),
+    'g1_inspire_virtual': torch.zeros(16, dtype=torch.float32),
 }
 CAM_KEY = {
     'g1_dex1': 'cam_right_high',
     'z1_dual_dex1_realsense': 'cam_high',
     'z1_realsense': 'cam_high',
+    'g1_inspire_virtual': 'cam_right_high',
 }
 # fmt: on
 
@@ -150,7 +153,7 @@ def get_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
     parser.add_argument("--robot_type",
                         type=str,
-                        default="g1_dex1",
+                        default="g1_inspire_virtual",
                         help="The type of the robot embodiment.")
     parser.add_argument(
         "--action_horizon",

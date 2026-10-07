@@ -1,8 +1,8 @@
 model_name=testing
-ckpt=/home/humanoid42/Workspace/area42-rdi-unifoLM-WMA/outputs/sprite_wma_v1/checkpoints/trainstep_checkpoints/epoch=1521-step=35000.ckpt
+ckpt=$HOME/Workspace/area42-rdi-unifoLM-WMA/outputs/sprite_wma_v1/checkpoints/trainstep_checkpoints/epoch=1521-step=35000.ckpt
 config=configs/inference/world_model_decision_making.yaml
 seed=123
-res_dir="/home/humanoid42/Workspace/area42-rdi-unifoLM-WMA/outputs/sprite_wma_v1_eval"
+res_dir="$HOME/Workspace/area42-rdi-unifoLM-WMA/outputs/sprite_wma_v1_eval"
 datasets=(
     "sprite_wma_v1"
 )

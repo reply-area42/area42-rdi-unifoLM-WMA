@@ -19,6 +19,7 @@ from unitree_deploy.robot_devices.cameras.configs import (
 from unitree_deploy.robot_devices.endeffector.configs import (
     Dex1_GripperConfig,
     EndEffectorConfig,
+    InspireVirtualGripperConfig,
 )
 
 # ======================== arm motors =================================
@@ -175,6 +176,43 @@ def dex1_default_factory():
         ),
     }
 
+def inspire_virtual_default_factory():
+    return {
+        "left": InspireVirtualGripperConfig(
+            side="left",
+            port="/dev/ttyUSB0",
+            motors={
+                "kLeftVirtualGripper": [0, "inspire-virtual"],
+            },
+
+            # Replace with measured values
+            q_open=(0, 0, 0, 0, 0, 0),
+            q_closed=(800, 800, 800, 800, 800, 800),
+
+            # Replace with the raw dataset values
+            virtual_open=5.4,
+            virtual_closed=0.0,
+
+            max_joint_step=20.0,
+        ),
+        "right": InspireVirtualGripperConfig(
+            side="right",
+            port="/dev/ttyUSB1",
+            motors={
+                "kRightVirtualGripper": [1, "inspire-virtual"],
+            },
+
+            # Replace with measured values
+            q_open=(0, 0, 0, 0, 0, 0),
+            q_closed=(800, 800, 800, 800, 800, 800),
+
+            # Replace with the raw dataset values
+            virtual_open=5.4,
+            virtual_closed=0.0,
+
+            max_joint_step=20.0,
+        ),
+    }
 
 # =========================================================
 
@@ -268,3 +306,17 @@ class G1_Dex1_Imageclint_RobotConfig(UnitreeRobotConfig):
     cameras: dict[str, CameraConfig] = field(default_factory=g1_image_client_default_factory)
     arm: dict[str, ArmConfig] = field(default_factory=g1_dual_arm_default_factory)
     endeffector: dict[str, EndEffectorConfig] = field(default_factory=dex1_default_factory)
+
+# =============================== Arm:g1, Endeffector:inspire1, Camera:imageclint ========================================
+@RobotConfig.register_subclass("g1_inspire_virtual")
+@dataclass
+class G1_InspireVirtual_RobotConfig(UnitreeRobotConfig):
+    cameras: dict[str, CameraConfig] = field(
+        default_factory=g1_image_client_default_factory
+    )
+    arm: dict[str, ArmConfig] = field(
+        default_factory=g1_dual_arm_default_factory
+    )
+    endeffector: dict[str, EndEffectorConfig] = field(
+        default_factory=inspire_virtual_default_factory
+    )

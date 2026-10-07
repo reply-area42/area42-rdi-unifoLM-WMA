@@ -1,8 +1,8 @@
 model_name=testing
-ckpt=/home/humanoid42/Workspace/area42-rdi-unifoLM-WMA/outputs/sprite_wma_v1_sim/checkpoints/epoch=782-step=18000.ckpt
+ckpt=$HOME/Workspace/area42-rdi-unifoLM-WMA/outputs/sprite_wma_v1_sim/checkpoints/epoch=782-step=18000.ckpt
 config=configs/inference/world_model_interaction.yaml
 seed=123
-res_dir="/home/humanoid42/Workspace/area42-rdi-unifoLM-WMA/outputs"
+res_dir="$HOME/Workspace/area42-rdi-unifoLM-WMA/outputs"
 
 datasets=(
     "sprite_wma_v1"
@@ -25,7 +25,7 @@ for i in "${!datasets[@]}"; do
     --unconditional_guidance_scale 1.0 \
     --ddim_steps 50 \
     --ddim_eta 1.0 \
-    --prompt_dir "/home/humanoid42/Workspace/area42-rdi-unifoLM-WMA/prove" \
+    --prompt_dir "$HOME/Workspace/area42-rdi-unifoLM-WMA/prove" \
     --dataset ${dataset} \
     --video_length 16 \
     --frame_stride ${fs} \

@@ -2,6 +2,7 @@ from typing import Protocol
 
 from unitree_deploy.robot.robot_configs import (
     G1_Dex1_Imageclint_RobotConfig,
+    G1_InspireVirtual_RobotConfig,
     RobotConfig,
     Z1_Realsense_RobotConfig,
     Z1dual_Dex1_Opencv_RobotConfig,
@@ -32,6 +33,8 @@ def make_robot_config(robot_type: str, **kwargs) -> RobotConfig:
         return Z1dual_Dex1_Opencv_RobotConfig(**kwargs)
     elif robot_type == "g1_dex1":
         return G1_Dex1_Imageclint_RobotConfig(**kwargs)
+    elif robot_type == "g1_inspire_virtual":
+        return G1_InspireVirtual_RobotConfig(**kwargs)
     else:
         raise ValueError(f"Robot type '{robot_type}' is not available.")
 

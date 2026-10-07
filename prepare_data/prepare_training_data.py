@@ -13,8 +13,8 @@ from tqdm import tqdm
 
 """
 python prepare_training_data.py \
-    --source_dir /home/humanoid42/.cache/huggingface/lerobot/reply-area42 \
-    --target_dir /home/humanoid42/.cache/huggingface/lerobot/reply-area42/sprite_wma_v1_h5 \                        
+    --source_dir $HOME/.cache/huggingface/lerobot/reply-area42 \
+    --target_dir $HOME/.cache/huggingface/lerobot/reply-area42/sprite_wma_v1_h5 \                        
     --dataset_name "sprite_wma_v1" \
     --robot_name "Unitree g1 with inspire hands"
 
