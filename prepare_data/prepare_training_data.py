@@ -14,8 +14,8 @@ from tqdm import tqdm
 """
 python prepare_training_data.py \
     --source_dir $HOME/.cache/huggingface/lerobot/reply-area42 \
-    --target_dir $HOME/.cache/huggingface/lerobot/reply-area42/sprite_wma_v1_h5 \                        
-    --dataset_name "sprite_wma_v1" \
+    --target_dir $HOME/.cache/huggingface/lerobot/reply-area42/unitree_g1_pick_sprite_h5 \                        
+    --dataset_name "unitree_g1_pick_sprite" \
     --robot_name "Unitree g1 with inspire hands"
 
 """
