@@ -19,6 +19,10 @@ from unitree_deploy.robot_devices.endeffector.configs import (
 
 INSPIRE_NUM_MOTORS = 6  # pinky, ring, middle, index, thumb-bend, thumb-rotation
 INSPIRE_RAW_MAX = 1000.0  # driver units: 0 = fully closed, 1000 = fully open
+
+INSPIRE_THUMB_ROT_IDX = 5
+THUMB_ROT_FIXED_VIRTUAL = 2.5  # valore fisso, stessa scala di virtual_open/virtual_closed
+
 kTopicInspireCommand = {"right": "rt/inspire_hand/ctrl/r", "left": "rt/inspire_hand/ctrl/l"}
 kTopicInspireState = {"right": "rt/inspire_hand/state/r", "left": "rt/inspire_hand/state/l"}
 
@@ -180,41 +184,36 @@ class InspireVirtualGripper:
         self.hand.write(q_target)
 
     def _hardware_to_virtual(self, q: np.ndarray) -> float:
-        """
-        Project the measured six-joint pose onto the calibrated
-        open-to-closed grasp trajectory.
-        """
-        direction = self.q_closed - self.q_open
-        denominator = float(np.dot(direction, direction))
+        mask = np.ones(INSPIRE_NUM_MOTORS, dtype=bool)
+        mask[INSPIRE_THUMB_ROT_IDX] = False  # escluso: fissato, non informativo sull'apertura
 
+        direction = (self.q_closed - self.q_open)[mask]
+        denominator = float(np.dot(direction, direction))
         if denominator < 1e-8:
             raise ValueError("q_open and q_closed cannot be identical")
 
-        alpha = float(
-            np.dot(q - self.q_open, direction) / denominator
-        )
+        alpha = float(np.dot((q - self.q_open)[mask], direction) / denominator)
         alpha = float(np.clip(alpha, 0.0, 1.0))
 
-        return (
-            self.virtual_open
-            + alpha * (self.virtual_closed - self.virtual_open)
-        )
+        return self.virtual_open + alpha * (self.virtual_closed - self.virtual_open)
 
     def _virtual_to_hardware(self, virtual_q: float) -> np.ndarray:
-        """
-        Convert the raw model gripper value into six Inspire targets.
-        """
         denominator = self.virtual_closed - self.virtual_open
-
         if abs(denominator) < 1e-8:
-            raise ValueError(
-                "virtual_open and virtual_closed cannot be identical"
-            )
+            raise ValueError("virtual_open and virtual_closed cannot be identical")
 
-        alpha = (virtual_q - self.virtual_open) / denominator
-        alpha = float(np.clip(alpha, 0.0, 1.0))
+        alpha = float(np.clip((virtual_q - self.virtual_open) / denominator, 0.0, 1.0))
+        hw_q = self.q_open + alpha * (self.q_closed - self.q_open)
 
-        return self.q_open + alpha * (self.q_closed - self.q_open)
+        # Thumb-rotation: posizione fissa "fake gripper", indipendente dallo scalare della rete
+        thumb_alpha = float(np.clip(
+            (THUMB_ROT_FIXED_VIRTUAL - self.virtual_open) / denominator, 0.0, 1.0
+        ))
+        hw_q[INSPIRE_THUMB_ROT_IDX] = (
+            self.q_open[INSPIRE_THUMB_ROT_IDX]
+            + thumb_alpha * (self.q_closed[INSPIRE_THUMB_ROT_IDX] - self.q_open[INSPIRE_THUMB_ROT_IDX])
+        )
+        return hw_q
 
     def read_current_endeffector_q(self) -> np.ndarray:
         if self.is_mock:
@@ -276,6 +275,8 @@ class InspireVirtualGripper:
             lower = np.minimum(self.q_open, self.q_closed)
             upper = np.maximum(self.q_open, self.q_closed)
             safe_q = np.clip(safe_q, lower, upper)
+
+            safe_q[5] = 2.5
 
             self._write_hardware_positions(safe_q)
 

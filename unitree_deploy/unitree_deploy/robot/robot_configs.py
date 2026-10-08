@@ -216,7 +216,7 @@ def inspire_virtual_default_factory():
             q_closed=(0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
 
             # Replace with the raw dataset values
-            virtual_open=5.4,
+            virtual_open=8.0,
             virtual_closed=0.0,
 
             # max_joint_step=0.1,  # max change per write, in normalized units
@@ -235,7 +235,7 @@ def inspire_virtual_default_factory():
             q_closed=(0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
 
             # Replace with the raw dataset values
-            virtual_open=5.4,
+            virtual_open=8.0,
             virtual_closed=0.0,
 
             max_joint_step=0.1,  # max change per write, in normalized units
