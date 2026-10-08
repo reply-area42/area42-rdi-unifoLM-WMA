@@ -1,3 +1,4 @@
+import os
 import threading
 import time
 from typing import Callable
@@ -37,7 +38,8 @@ class G1_29_ArmController:
 
         self.max_pos_speed = config.max_pos_speed
 
-        self.topic_low_command = config.topic_low_command
+        self.motion_mode = config.motion_mode
+        self.topic_low_command = config.topic_low_command_motion if self.motion_mode else config.topic_low_command
         self.topic_low_state = config.topic_low_state
 
         self.kp_high = config.kp_high
@@ -92,7 +94,7 @@ class G1_29_ArmController:
                 time.sleep(1)
             else:
                 # initialize lowcmd publisher and lowstate subscriber
-                ChannelFactoryInitialize(0, "enp130s0")
+                ChannelFactoryInitialize(0, os.environ.get("UNITREE_NIC", "enp130s0"))
                 self.lowcmd_publisher = ChannelPublisher(self.topic_low_command, LowCmd_)
                 self.lowcmd_publisher.Init()
                 self.lowstate_subscriber = ChannelSubscriber(self.topic_low_state, LowState_)
@@ -236,6 +238,11 @@ class G1_29_ArmController:
         # wait dds init done !!!
         time.sleep(2)
 
+        # arm_sdk blending weight: 1.0 = arms fully controlled by this process.
+        # Must be set BEFORE the first publish (go_start below).
+        if self.motion_mode:
+            self.msg.motor_cmd[G1_29_JointIndex.kNotUsedJoint0].q = 1.0
+
         self.pose_interp = JointTrajectoryInterpolator(
             times=[time.monotonic()], joint_positions=[self.read_current_arm_q()]
         )
@@ -350,7 +357,19 @@ class G1_29_ArmController:
             self.publish_thread.join()
 
             self._drive_to_waypoint(target_pose=self.init_pose, t_insert_time=2.0)
+
+            # Hand the arms back to the onboard controller, otherwise they stay stiff.
+            if self.motion_mode:
+                self._release_arm_sdk()
         log_success("[G1_29_ArmController] Go Home OK!\n")
+
+    def _release_arm_sdk(self, duration: float = 2.0, steps: int = 101):
+        """Ramp the arm_sdk weight 1 -> 0 while keeping the last arm command published."""
+        for weight in np.linspace(1.0, 0.0, num=steps):
+            self.msg.motor_cmd[G1_29_JointIndex.kNotUsedJoint0].q = float(weight)
+            self.msg.crc = self.crc.Crc(self.msg)
+            self.lowcmd_publisher.Write(self.msg)
+            time.sleep(duration / (steps - 1))
 
     def disconnect(self):
         self.is_connected = False

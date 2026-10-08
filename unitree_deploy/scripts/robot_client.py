@@ -43,7 +43,7 @@ CAM_KEY = {
     'g1_dex1': 'cam_right_high',
     'z1_dual_dex1_realsense': 'cam_high',
     'z1_realsense': 'cam_high',
-    'g1_inspire_virtual': 'cam_right_high',
+    'g1_inspire_virtual': 'cam_high',
 }
 # fmt: on
 

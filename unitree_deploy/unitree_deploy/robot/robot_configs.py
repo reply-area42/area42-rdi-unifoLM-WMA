@@ -129,17 +129,27 @@ def g1_image_client_default_factory():
 def g1_image_client_inspire_factory():
     return {
         "imageclient": ImageClientCameraConfig(
-            head_camera_type="opencv",
-            head_camera_id_numbers=[4],
+            head_camera_type="realsense",
+            head_camera_id_numbers=[0],
             head_camera_image_shape=[480, 640],  # Head camera resolution
             # wrist_camera_type="opencv",
             # wrist_camera_id_numbers=[0, 2],
             # wrist_camera_image_shape=[480, 640],  # Wrist camera resolution
-            aspect_ratio_threshold=2.0,
-            fps=30,
+            # aspect_ratio_threshold=2.0,
+            fps=15,
             mock=False,
         ),
     }
+
+# def g1_image_client_inspire_factory():
+#     return {
+#         "cam_right_high": IntelRealSenseCameraConfig(
+#             serial_number="243122076269",
+#             fps=15,
+#             width=640,
+#             height=480,
+#         ),
+#     }
 
 
 def usb_camera_default_factory():
@@ -193,23 +203,24 @@ def dex1_default_factory():
 
 def inspire_virtual_default_factory():
     return {
-        "left": InspireVirtualGripperConfig(
-            side="left",
-            port="/dev/ttyUSB0",
-            motors={
-                "kLeftVirtualGripper": [0, "inspire-virtual"],
-            },
+        # "left": InspireVirtualGripperConfig(
+        #     side="left",
+        #     port="/dev/ttyUSB0",
+        #     motors={
+        #         "kLeftVirtualGripper": [0, "inspire-virtual"],
+        #     },
 
-            # Replace with measured values
-            q_open=(0, 0, 0, 0, 0, 0),
-            q_closed=(800, 800, 800, 800, 800, 800),
+        #     # Normalized Inspire DDS units (1.0 = open, 0.0 = closed).
+        #     # q_closed is a starting point: calibrate it on a real grasp of the object.
+        #     q_open=(1.0, 1.0, 1.0, 1.0, 1.0, 1.0),
+        #     q_closed=(0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
 
-            # Replace with the raw dataset values
-            virtual_open=5.4,
-            virtual_closed=0.0,
+        #     # Replace with the raw dataset values
+        #     virtual_open=5.4,
+        #     virtual_closed=0.0,
 
-            max_joint_step=20.0,
-        ),
+        #     max_joint_step=0.1,  # max change per write, in normalized units
+        # ),
         "right": InspireVirtualGripperConfig(
             side="right",
             port="/dev/ttyUSB1",
@@ -217,15 +228,16 @@ def inspire_virtual_default_factory():
                 "kRightVirtualGripper": [1, "inspire-virtual"],
             },
 
-            # Replace with measured values
-            q_open=(0, 0, 0, 0, 0, 0),
-            q_closed=(800, 800, 800, 800, 800, 800),
+            # Normalized Inspire DDS units (1.0 = open, 0.0 = closed).
+            # q_closed is a starting point: calibrate it on a real grasp of the object.
+            q_open=(1.0, 1.0, 1.0, 1.0, 1.0, 1.0),
+            q_closed=(0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
 
             # Replace with the raw dataset values
             virtual_open=5.4,
             virtual_closed=0.0,
 
-            max_joint_step=20.0,
+            max_joint_step=0.1,  # max change per write, in normalized units
         ),
     }
 

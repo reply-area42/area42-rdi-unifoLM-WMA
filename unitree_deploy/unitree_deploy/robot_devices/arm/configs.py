@@ -67,7 +67,12 @@ class G1ArmConfig(ArmConfig):
     control_dt: float = 1 / 500.0
     max_pos_speed: float = 180 * (np.pi / 180) * 2
 
+    # motion_mode=True: the onboard locomotion controller stays active and only the arms
+    # are driven through `rt/arm_sdk` (same as `xr_teleoperate --motion`).
+    # motion_mode=False: full low-level control on `rt/lowcmd` (robot must be in debug mode).
+    motion_mode: bool = True
     topic_low_command: str = "rt/lowcmd"
+    topic_low_command_motion: str = "rt/arm_sdk"
     topic_low_state: str = "rt/lowstate"
 
     kp_high: float = 300.0

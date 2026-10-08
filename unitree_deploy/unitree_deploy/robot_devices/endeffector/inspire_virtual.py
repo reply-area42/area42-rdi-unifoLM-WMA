@@ -1,11 +1,98 @@
+import os
 import threading
 import time
 
 import numpy as np
+from unitree_sdk2py.core.channel import ChannelFactoryInitialize, ChannelPublisher, ChannelSubscriber
+
+try:  # same driver package used by xr_teleoperate (`--ee inspire1` / `dftp`)
+    from inspire_sdkpy import inspire_dds, inspire_hand_defaut
+except ImportError as e:  # pragma: no cover
+    raise ImportError(
+        "`inspire_sdkpy` is not installed in this environment. Install the Inspire SDK used by "
+        "xr_teleoperate (inspire_hand_ws/inspire_hand_sdk) into the unitree_deploy env."
+    ) from e
 
 from unitree_deploy.robot_devices.endeffector.configs import (
     InspireVirtualGripperConfig,
 )
+
+INSPIRE_NUM_MOTORS = 6  # pinky, ring, middle, index, thumb-bend, thumb-rotation
+INSPIRE_RAW_MAX = 1000.0  # driver units: 0 = fully closed, 1000 = fully open
+# kTopicInspireCommand = {"right": "rt/inspire_hand/ctrl/r", "left": "rt/inspire_hand/ctrl/l"}
+# kTopicInspireState = {"right": "rt/inspire_hand/state/r", "left": "rt/inspire_hand/state/l"}
+
+kTopicInspireCommand = {"right": "rt/inspire_hand/ctrl/r"}
+kTopicInspireState = {"right": "rt/inspire_hand/state/r"}
+
+
+class _InspireDFXHand:
+    """One Inspire hand through the Inspire DDS driver (same topics as xr_teleoperate).
+
+    All values exposed here are normalized: 1.0 = open, 0.0 = closed (raw driver units / 1000).
+    Left and right hands have separate topics, so each gripper owns its own publisher.
+    """
+
+    def __init__(self, side: str):
+        self.side = side
+        try:
+            # No-op if the arm controller already initialized DDS in this process.
+            ChannelFactoryInitialize(0, os.environ.get("UNITREE_NIC", "enp130s0"))
+        except Exception:
+            pass
+
+        self._pub = ChannelPublisher(kTopicInspireCommand[side], inspire_dds.inspire_hand_ctrl)
+        self._pub.Init()
+        self._sub = ChannelSubscriber(kTopicInspireState[side], inspire_dds.inspire_hand_state)
+        self._sub.Init()
+
+        self._lock = threading.Lock()
+        self._state = np.ones(INSPIRE_NUM_MOTORS, dtype=np.float32)
+        self._has_state = False
+
+        self._cmd = inspire_hand_defaut.get_inspire_hand_ctrl()
+        self._cmd.mode = 0b0001  # angle control
+
+        threading.Thread(target=self._subscribe_state, name=f"inspire.{side}._subscribe_state", daemon=True).start()
+
+    def _subscribe_state(self):
+        while True:
+            msg = self._sub.Read()
+            if msg is not None:
+                angles = getattr(msg, "angle_act", None)
+                if angles is None:
+                    raise AttributeError(
+                        f"`inspire_hand_state` has no `angle_act` field; available: {[a for a in dir(msg) if not a.startswith('_')]}"
+                    )
+                q = np.asarray(list(angles)[:INSPIRE_NUM_MOTORS], dtype=np.float32) / INSPIRE_RAW_MAX
+                with self._lock:
+                    self._state = q
+                    self._has_state = True
+            time.sleep(0.002)
+
+    def wait_for_state(self, timeout: float = 5.0):
+        t0 = time.monotonic()
+        while True:
+            with self._lock:
+                if self._has_state:
+                    return
+            if time.monotonic() - t0 > timeout:
+                raise TimeoutError(
+                    f"No message on `{kTopicInspireState[self.side]}` after {timeout}s. "
+                    "Is the Inspire hand driver running (inspire_sdk.py on the laptop, or inspire_g1 on PC2)?"
+                )
+            time.sleep(0.01)
+
+    def read(self) -> np.ndarray:
+        with self._lock:
+            return self._state.copy()
+
+    def write(self, q: np.ndarray):
+        q = np.clip(np.asarray(q, dtype=np.float64), 0.0, 1.0)
+        for i in range(INSPIRE_NUM_MOTORS):
+            self._cmd.angle_set[i] = int(round(q[i] * INSPIRE_RAW_MAX))
+        self._pub.Write(self._cmd)
+
 
 class InspireVirtualGripper:
     def __init__(self, config: InspireVirtualGripperConfig):
@@ -69,36 +156,24 @@ class InspireVirtualGripper:
 
     def _create_inspire_connection(self, port: str, side: str):
         """
-        Instantiate the Inspire SDK, CAN or serial interface here.
-        This is the only hardware-specific constructor.
+        Inspire hands are driven over DDS through the Inspire driver, so `port` is unused.
         """
-        raise NotImplementedError(
-            "Implement connection using the Inspire Hand SDK"
-        )
+        hand = _InspireDFXHand(side)
+        hand.wait_for_state()
+        return hand
 
     def _read_hardware_positions(self) -> np.ndarray:
         """
         Return the six Inspire actuator positions in the same order as
         q_open and q_closed.
         """
-        # Example:
-        # q = self.hand.get_positions()
-        # return np.asarray(q, dtype=np.float32)
-
-        raise NotImplementedError(
-            "Implement position reading using the Inspire Hand SDK"
-        )
+        return self.hand.read().astype(np.float32)
 
     def _write_hardware_positions(self, q_target: np.ndarray):
         """
         Send six target positions to the Inspire Hand.
         """
-        # Example:
-        # self.hand.set_positions(q_target.tolist())
-
-        raise NotImplementedError(
-            "Implement position commands using the Inspire Hand SDK"
-        )
+        self.hand.write(q_target)
 
     def _hardware_to_virtual(self, q: np.ndarray) -> float:
         """
