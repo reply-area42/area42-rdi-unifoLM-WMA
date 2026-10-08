@@ -48,6 +48,7 @@ class InspireVirtualGripperConfig(EndEffectorConfig):
     control_dt: float = 1 / 100
     max_joint_step: float = 0.03
     init_opening: float | None = None
+    mock_value: float | None = None
 
 
     def __post_init__(self):

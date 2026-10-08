@@ -203,24 +203,25 @@ def dex1_default_factory():
 
 def inspire_virtual_default_factory():
     return {
-        # "left": InspireVirtualGripperConfig(
-        #     side="left",
-        #     port="/dev/ttyUSB0",
-        #     motors={
-        #         "kLeftVirtualGripper": [0, "inspire-virtual"],
-        #     },
+        "left": InspireVirtualGripperConfig(
+            side="left",
+            port="/dev/ttyUSB0",
+            motors={
+                "kLeftVirtualGripper": [0, "inspire-virtual"],
+            },
 
-        #     # Normalized Inspire DDS units (1.0 = open, 0.0 = closed).
-        #     # q_closed is a starting point: calibrate it on a real grasp of the object.
-        #     q_open=(1.0, 1.0, 1.0, 1.0, 1.0, 1.0),
-        #     q_closed=(0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+            # Normalized Inspire DDS units (1.0 = open, 0.0 = closed).
+            # q_closed is a starting point: calibrate it on a real grasp of the object.
+            q_open=(1.0, 1.0, 1.0, 1.0, 1.0, 1.0),
+            q_closed=(0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
 
-        #     # Replace with the raw dataset values
-        #     virtual_open=5.4,
-        #     virtual_closed=0.0,
+            # Replace with the raw dataset values
+            virtual_open=5.4,
+            virtual_closed=0.0,
 
-        #     max_joint_step=0.1,  # max change per write, in normalized units
-        # ),
+            # max_joint_step=0.1,  # max change per write, in normalized units
+            mock_value = 0.0,
+        ),
         "right": InspireVirtualGripperConfig(
             side="right",
             port="/dev/ttyUSB1",

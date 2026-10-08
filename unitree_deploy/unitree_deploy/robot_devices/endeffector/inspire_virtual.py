@@ -19,11 +19,8 @@ from unitree_deploy.robot_devices.endeffector.configs import (
 
 INSPIRE_NUM_MOTORS = 6  # pinky, ring, middle, index, thumb-bend, thumb-rotation
 INSPIRE_RAW_MAX = 1000.0  # driver units: 0 = fully closed, 1000 = fully open
-# kTopicInspireCommand = {"right": "rt/inspire_hand/ctrl/r", "left": "rt/inspire_hand/ctrl/l"}
-# kTopicInspireState = {"right": "rt/inspire_hand/state/r", "left": "rt/inspire_hand/state/l"}
-
-kTopicInspireCommand = {"right": "rt/inspire_hand/ctrl/r"}
-kTopicInspireState = {"right": "rt/inspire_hand/state/r"}
+kTopicInspireCommand = {"right": "rt/inspire_hand/ctrl/r", "left": "rt/inspire_hand/ctrl/l"}
+kTopicInspireState = {"right": "rt/inspire_hand/state/r", "left": "rt/inspire_hand/state/l"}
 
 
 class _InspireDFXHand:
@@ -117,6 +114,9 @@ class InspireVirtualGripper:
 
         self.hand = None
 
+        self.mock_value = getattr(config, "mock_value", None)
+        self.is_mock = self.mock_value is not None
+
     @property
     def motor_names(self) -> list[str]:
         # Must return a list of length one
@@ -132,6 +132,10 @@ class InspireVirtualGripper:
 
     def connect(self):
         if self._is_connected:
+            return
+
+        if self.is_mock:
+            self._is_connected = True
             return
 
         # Replace with the actual Inspire SDK constructor.
@@ -213,6 +217,9 @@ class InspireVirtualGripper:
         return self.q_open + alpha * (self.q_closed - self.q_open)
 
     def read_current_endeffector_q(self) -> np.ndarray:
+        if self.is_mock:
+            return np.asarray([self.mock_value], dtype=np.float32)
+
         q = self._read_hardware_positions()
         virtual_q = self._hardware_to_virtual(q)
 
@@ -223,6 +230,9 @@ class InspireVirtualGripper:
         return np.asarray([virtual_q], dtype=np.float32)
 
     def read_current_endeffector_dq(self) -> np.ndarray:
+        if self.is_mock:
+            return np.zeros(1, dtype=np.float32)
+
         now = time.monotonic()
         q = self._read_hardware_positions()
 
@@ -246,6 +256,9 @@ class InspireVirtualGripper:
         time_target=None,
         cmd_target=None,
     ):
+        if self.is_mock:
+            return
+
         virtual_target = float(np.asarray(q_target).reshape(-1)[0])
         desired_q = self._virtual_to_hardware(virtual_target)
 
