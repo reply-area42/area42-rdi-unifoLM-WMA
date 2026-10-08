@@ -150,32 +150,94 @@ def get_trainer_strategy(lightning_config):
     return strategy_cfg
 
 
+# def load_checkpoints(model, model_cfg):
+#     if check_config_attribute(model_cfg, "pretrained_checkpoint"):
+#         pretrained_ckpt = model_cfg.pretrained_checkpoint
+#         assert os.path.exists(
+#             pretrained_ckpt
+#         ), "Error: Pre-trained checkpoint NOT found at:%s" % pretrained_ckpt
+#         mainlogger.info(">>> Load weights from pretrained checkpoint")
+
+#         pl_sd = torch.load(pretrained_ckpt, map_location="cpu")
+#         try:
+#             if 'state_dict' in pl_sd.keys():
+#                 model.load_state_dict(pl_sd["state_dict"], strict=False)
+#                 mainlogger.info(
+#                     ">>> Loaded weights from pretrained checkpoint: %s" %
+#                     pretrained_ckpt)
+#             else:
+#                 # deepspeed
+#                 new_pl_sd = OrderedDict()
+#                 for key in pl_sd['module'].keys():
+#                     new_pl_sd[key[16:]] = pl_sd['module'][key]
+#                 model.load_state_dict(new_pl_sd, strict=False)
+#         except:
+#             model.load_state_dict(pl_sd)
+#     else:
+#         mainlogger.info(">>> Start training from scratch")
+
+#     return model
+
+def _remap_cond_weight(v, t, dsed, n_obs, rgb_dim, old_D, new_D, keep):
+    """v: [out, Cin_old] -> t: [out, Cin_new]. Layout: [t_emb | (rgb|agent_pos)*n_obs | coda]."""
+    Fo, Fn = rgb_dim + old_D, rgb_dim + new_D
+    new = torch.zeros_like(t)
+    new[:, :dsed] = v[:, :dsed]
+    for i in range(n_obs):
+        so, sn = dsed + i * Fo, dsed + i * Fn
+        new[:, sn:sn + rgb_dim] = v[:, so:so + rgb_dim]
+        k = min(keep, old_D)
+        new[:, sn + rgb_dim:sn + rgb_dim + k] = v[:, so + rgb_dim:so + rgb_dim + k]
+    to, tn = dsed + n_obs * Fo, dsed + n_obs * Fn
+    assert v.shape[1] - to == t.shape[1] - tn, "coda del cond diversa"
+    new[:, tn:] = v[:, to:]
+    return new
+
+
+def load_state_dict_resized(model, sd, keep=14, old_D=16, new_D=26,
+                            dsed=128, n_obs=2):
+    msd = model.state_dict()
+    rgb_dim = model.model.diffusion_model.action_unet.obs_encoder.output_shape()[-1] - new_D
+    out, resized, skipped = {}, [], []
+    for k, v in sd.items():
+        t = msd.get(k)
+        if t is None or v.shape == t.shape:
+            out[k] = v
+        elif 'cond_encoder' in k and v.ndim == 2 and v.shape[0] == t.shape[0] \
+                and t.shape[1] - v.shape[1] == n_obs * (new_D - old_D):
+            out[k] = _remap_cond_weight(v, t, dsed, n_obs, rgb_dim, old_D, new_D, keep)
+            resized.append((k, 'cond', tuple(v.shape), tuple(t.shape)))
+        elif v.ndim == t.ndim and all(s == ts or (s == old_D and ts == new_D)
+                                      for s, ts in zip(v.shape, t.shape)):
+            new = torch.zeros_like(t)
+            idx = tuple(slice(None) if s == ts else slice(0, keep)
+                        for s, ts in zip(v.shape, t.shape))
+            new[idx] = v[idx].to(new.dtype)
+            out[k] = new
+            resized.append((k, 'chan', tuple(v.shape), tuple(t.shape)))
+        else:
+            skipped.append((k, tuple(v.shape), tuple(t.shape)))
+    for r in resized: mainlogger.info(f">>> resized: {r}")
+    for s in skipped: mainlogger.info(f">>> SKIPPED (random init): {s}")
+    return model.load_state_dict(out, strict=False)
+
+
 def load_checkpoints(model, model_cfg):
     if check_config_attribute(model_cfg, "pretrained_checkpoint"):
         pretrained_ckpt = model_cfg.pretrained_checkpoint
-        assert os.path.exists(
-            pretrained_ckpt
-        ), "Error: Pre-trained checkpoint NOT found at:%s" % pretrained_ckpt
+        assert os.path.exists(pretrained_ckpt), \
+            "Error: Pre-trained checkpoint NOT found at:%s" % pretrained_ckpt
         mainlogger.info(">>> Load weights from pretrained checkpoint")
 
         pl_sd = torch.load(pretrained_ckpt, map_location="cpu")
-        try:
-            if 'state_dict' in pl_sd.keys():
-                model.load_state_dict(pl_sd["state_dict"], strict=False)
-                mainlogger.info(
-                    ">>> Loaded weights from pretrained checkpoint: %s" %
-                    pretrained_ckpt)
-            else:
-                # deepspeed
-                new_pl_sd = OrderedDict()
-                for key in pl_sd['module'].keys():
-                    new_pl_sd[key[16:]] = pl_sd['module'][key]
-                model.load_state_dict(new_pl_sd, strict=False)
-        except:
-            model.load_state_dict(pl_sd)
+        if 'state_dict' in pl_sd:
+            sd = pl_sd['state_dict']
+        else:  # deepspeed
+            sd = OrderedDict((k[16:], v) for k, v in pl_sd['module'].items())
+        load_state_dict_resized(model, sd, keep=14)
+        mainlogger.info(">>> Loaded weights from pretrained checkpoint: %s" % pretrained_ckpt)
     else:
         mainlogger.info(">>> Start training from scratch")
-
     return model
 
 

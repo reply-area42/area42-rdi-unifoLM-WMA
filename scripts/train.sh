@@ -11,7 +11,7 @@
 
 
 # args
-name="sprite_wma_v1_sim"
+name="unitree_g1_pick_sprite"
 config_file=configs/train/config.yaml
 save_root="outputs/"
 

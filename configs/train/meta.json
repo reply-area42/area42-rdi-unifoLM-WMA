@@ -10,13 +10,13 @@
         },
         "agent_pos": {
             "shape": [
-                16
+                26
             ],
             "type": "low_dim"
         }
     },
     "action": {
         "shape": [
-            16        ]
+            26        ]
     }
 }
