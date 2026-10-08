@@ -215,6 +215,44 @@ class InspireVirtualGripper:
         )
         return hw_q
 
+    # without thumb rotation blocked
+    # def _hardware_to_virtual(self, q: np.ndarray) -> float:
+    #     """
+    #     Project the measured six-joint pose onto the calibrated
+    #     open-to-closed grasp trajectory.
+    #     """
+    #     direction = self.q_closed - self.q_open
+    #     denominator = float(np.dot(direction, direction))
+
+    #     if denominator < 1e-8:
+    #         raise ValueError("q_open and q_closed cannot be identical")
+
+    #     alpha = float(
+    #         np.dot(q - self.q_open, direction) / denominator
+    #     )
+    #     alpha = float(np.clip(alpha, 0.0, 1.0))
+
+    #     return (
+    #         self.virtual_open
+    #         + alpha * (self.virtual_closed - self.virtual_open)
+    #     )
+    
+    # def _virtual_to_hardware(self, virtual_q: float) -> np.ndarray:
+    #     """
+    #     Convert the raw model gripper value into six Inspire targets.
+    #     """
+    #     denominator = self.virtual_closed - self.virtual_open
+
+    #     if abs(denominator) < 1e-8:
+    #         raise ValueError(
+    #             "virtual_open and virtual_closed cannot be identical"
+    #         )
+
+    #     alpha = (virtual_q - self.virtual_open) / denominator
+    #     alpha = float(np.clip(alpha, 0.0, 1.0))
+
+    #     return self.q_open + alpha * (self.q_closed - self.q_open)
+
     def read_current_endeffector_q(self) -> np.ndarray:
         if self.is_mock:
             return np.asarray([self.mock_value], dtype=np.float32)
