@@ -4,6 +4,7 @@ from unitree_deploy.robot_devices.endeffector.configs import (
     Dex1_GripperConfig,
     EndEffectorConfig,
     InspireVirtualGripperConfig,
+    Inspire1Config,
 )
 
 
@@ -38,7 +39,10 @@ def make_endeffector_motors_buses_from_configs(
             from unitree_deploy.robot_devices.endeffector.inspire_virtual import InspireVirtualGripper
 
             endeffector_motors_buses[key] = InspireVirtualGripper(cfg)
+        elif cfg.type == "inspire1":
+            from unitree_deploy.robot_devices.endeffector.inspire1 import Inspire1
 
+            endeffector_motors_buses[key] = Inspire1(cfg)
         else:
             raise ValueError(f"The motor type '{cfg.type}' is not valid.")
 
@@ -57,6 +61,12 @@ def make_endeffector_motors_bus(endeffector_type: str, **kwargs) -> EndEffectorC
 
         config = InspireVirtualGripperConfig(**kwargs)
         return InspireVirtualGripper(config)
+
+    elif endeffector_type == "inspire1":
+        from unitree_deploy.robot_devices.endeffector.inspire1 import Inspire1
+
+        config = Inspire1Config(**kwargs)
+        return Inspire1(config)
 
     else:
         raise ValueError(f"The motor type '{endeffector_type}' is not valid.")

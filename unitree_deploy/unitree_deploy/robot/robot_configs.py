@@ -20,6 +20,7 @@ from unitree_deploy.robot_devices.endeffector.configs import (
     Dex1_GripperConfig,
     EndEffectorConfig,
     InspireVirtualGripperConfig,
+    Inspire1Config,
 )
 
 # ======================== arm motors =================================
@@ -242,6 +243,57 @@ def inspire_virtual_default_factory():
         ),
     }
 
+def inspire1_default_factory():
+    return {
+        "left": Inspire1Config(
+            side="left",
+            port="/dev/ttyUSB0",
+            motors={
+                "kLeftHandPinky": [0, "LeftHand-Pinky"],
+                "kLeftHandRing": [1, "LeftHand-Ring"],
+                "kLeftHandMiddle": [2, "LeftHand-Middle"],
+                "kLeftHandIndex": [3, "LeftHand-Index"],
+                "kLeftHandThumbBend": [4, "LeftHand-ThumbBend"],
+                "kLeftHandThumbRotation": [5, "LeftHand-ThumbRotation"],
+            },
+
+            # Normalized Inspire DDS units (1.0 = open, 0.0 = closed).
+            # q_closed is a starting point: calibrate it on a real grasp of the object.
+            q_open=(1.0, 1.0, 1.0, 1.0, 1.0, 1.0),
+            q_closed=(0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+
+            # Replace with the raw dataset values
+            virtual_open=8.0,
+            virtual_closed=0.0,
+
+            # max_joint_step=0.1,  # max change per write, in normalized units
+            mock_value = 0.0,
+        ),
+        "right": InspireVirtualGripperConfig(
+            side="right",
+            port="/dev/ttyUSB1",
+            motors={
+                "kRightHandPinky": [6, "RightHand-Pinky"],
+                "kRightHandRing": [7, "RightHand-Ring"],
+                "kRightHandMiddle": [8, "RightHand-Middle"],
+                "kRightHandIndex": [9, "RightHand-Index"],
+                "kRightHandThumbBend": [10, "RightHand-ThumbBend"],
+                "kRightHandThumbRotation": [11, "RightHand-ThumbRotation"],
+            },
+
+            # Normalized Inspire DDS units (1.0 = open, 0.0 = closed).
+            # q_closed is a starting point: calibrate it on a real grasp of the object.
+            q_open=(1.0, 1.0, 1.0, 1.0, 1.0, 1.0),
+            q_closed=(0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+
+            # Replace with the raw dataset values
+            virtual_open=8.0,
+            virtual_closed=0.0,
+
+            max_joint_step=0.1,  # max change per write, in normalized units
+        ),
+    }
+
 # =========================================================
 
 # ======================== arm =================================
@@ -327,7 +379,7 @@ class Z1dual_Dex1_Opencv_RobotConfig(UnitreeRobotConfig):
     endeffector: dict[str, EndEffectorConfig] = field(default_factory=dex1_default_factory)
 
 
-# =============================== Arm:g1, Endeffector:dex1, Camera:imageclint ========================================
+# =============================== Arm:g1, Endeffector:dex1, Camera:imageclient ========================================
 @RobotConfig.register_subclass("g1_dex1")
 @dataclass
 class G1_Dex1_Imageclint_RobotConfig(UnitreeRobotConfig):
@@ -335,7 +387,7 @@ class G1_Dex1_Imageclint_RobotConfig(UnitreeRobotConfig):
     arm: dict[str, ArmConfig] = field(default_factory=g1_dual_arm_default_factory)
     endeffector: dict[str, EndEffectorConfig] = field(default_factory=dex1_default_factory)
 
-# =============================== Arm:g1, Endeffector:inspire1, Camera:imageclint ========================================
+# =============================== Arm:g1, Endeffector:inspire_virtual, Camera:imageclient ========================================
 @RobotConfig.register_subclass("g1_inspire_virtual")
 @dataclass
 class G1_InspireVirtual_RobotConfig(UnitreeRobotConfig):
@@ -347,4 +399,18 @@ class G1_InspireVirtual_RobotConfig(UnitreeRobotConfig):
     )
     endeffector: dict[str, EndEffectorConfig] = field(
         default_factory=inspire_virtual_default_factory
+    )
+
+# =============================== Arm:g1, Endeffector:inspire1, Camera:imageclient ========================================
+@RobotConfig.register_subclass("g1_inspire1")
+@dataclass
+class G1_InspireVirtual_RobotConfig(UnitreeRobotConfig):
+    cameras: dict[str, CameraConfig] = field(
+        default_factory=g1_image_client_inspire_factory
+    )
+    arm: dict[str, ArmConfig] = field(
+        default_factory=g1_dual_arm_default_factory
+    )
+    endeffector: dict[str, EndEffectorConfig] = field(
+        default_factory=inspire1_default_factory
     )

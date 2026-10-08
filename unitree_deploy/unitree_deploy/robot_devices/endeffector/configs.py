@@ -62,3 +62,38 @@ class InspireVirtualGripperConfig(EndEffectorConfig):
 
         if len(self.q_open) != 6 or len(self.q_closed) != 6:
             raise ValueError("q_open and q_closed must contain six values")
+
+@EndEffectorConfig.register_subclass("inspire1")
+@dataclass
+class Inspire1Config(EndEffectorConfig):
+    side: str
+    port: str
+
+    # Exactly one logical motor
+    motors: dict[str, tuple[int, str]]
+
+    # Six-dimensional calibrated hardware poses
+    q_open: tuple[float, float, float, float, float, float]
+    q_closed: tuple[float, float, float, float, float, float]
+
+    # Raw values used in the training dataset, before normalization
+    virtual_open: float
+    virtual_closed: float
+
+    control_dt: float = 1 / 100
+    max_joint_step: float = 0.03
+    init_opening: float | None = None
+    mock_value: float | None = None
+
+
+    def __post_init__(self):
+        if self.side not in ("left", "right"):
+            raise ValueError("side must be 'left' or 'right'")
+
+        if len(self.motors) != 1:
+            raise ValueError(
+                "An Inspire virtual gripper must expose one logical motor"
+            )
+
+        if len(self.q_open) != 6 or len(self.q_closed) != 6:
+            raise ValueError("q_open and q_closed must contain six values")
