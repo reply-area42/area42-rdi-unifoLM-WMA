@@ -24,8 +24,8 @@ model:
     freeze_embedder: True
     n_obs_steps_imagen: 1
     n_obs_steps_acting: 1
-    agent_state_dim: 16
-    agent_action_dim: 16
+    agent_state_dim: 26
+    agent_action_dim: 26
 
     ###################### DP Related 
     input_pertub: 0.1 

@@ -1,10 +1,10 @@
 model_name=testing
-ckpt=$HOME/Workspace/area42-rdi-unifoLM-WMA/outputs/sprite_wma_v1/checkpoints/trainstep_checkpoints/epoch=1521-step=35000.ckpt
+ckpt=$HOME/Workspace/area42-rdi-unifoLM-WMA/outputs/unitree_g1_pick_sprite/checkpoints/trainstep_checkpoints/epoch=782-step=18000.ckpt
 config=configs/inference/world_model_decision_making.yaml
 seed=123
-res_dir="$HOME/Workspace/area42-rdi-unifoLM-WMA/outputs/sprite_wma_v1_eval"
+res_dir="$HOME/Workspace/area42-rdi-unifoLM-WMA/outputs/unitree_g1_pick_sprite"
 datasets=(
-    "sprite_wma_v1"
+    "unitree_g1_pick_sprite"
 )
 
 

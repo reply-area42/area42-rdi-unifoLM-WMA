@@ -90,7 +90,7 @@ class Inspire1Config(EndEffectorConfig):
         if self.side not in ("left", "right"):
             raise ValueError("side must be 'left' or 'right'")
 
-        if len(self.motors) != 1:
+        if len(self.motors) != 6:
             raise ValueError(
                 "An Inspire virtual gripper must expose one logical motor"
             )
