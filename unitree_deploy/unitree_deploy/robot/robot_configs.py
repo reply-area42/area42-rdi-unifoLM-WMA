@@ -269,7 +269,7 @@ def inspire1_default_factory():
             # max_joint_step=0.1,  # max change per write, in normalized units
             mock_value = 0.0,
         ),
-        "right": InspireVirtualGripperConfig(
+        "right": Inspire1Config(
             side="right",
             port="/dev/ttyUSB1",
             motors={
@@ -404,7 +404,7 @@ class G1_InspireVirtual_RobotConfig(UnitreeRobotConfig):
 # =============================== Arm:g1, Endeffector:inspire1, Camera:imageclient ========================================
 @RobotConfig.register_subclass("g1_inspire1")
 @dataclass
-class G1_InspireVirtual_RobotConfig(UnitreeRobotConfig):
+class G1_Inspire1_RobotConfig(UnitreeRobotConfig):
     cameras: dict[str, CameraConfig] = field(
         default_factory=g1_image_client_inspire_factory
     )
