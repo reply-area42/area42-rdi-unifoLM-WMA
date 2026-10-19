@@ -237,4 +237,4 @@ data:
         max_action_dim: ${model.params.agent_action_dim}
         max_state_dim: ${model.params.agent_state_dim}
     dataset_and_weights: 
-      sprite_wma_v1: 1.0
+      unitree_g1_pick_sprite: 1.0
