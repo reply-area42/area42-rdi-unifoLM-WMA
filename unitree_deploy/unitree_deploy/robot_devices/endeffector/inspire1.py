@@ -123,7 +123,6 @@ class Inspire1:
 
     @property
     def motor_names(self) -> list[str]:
-        # Must return a list of length one
         return list(self.motors.keys())
 
     @property
@@ -217,36 +216,32 @@ class Inspire1:
 
     def read_current_endeffector_q(self) -> np.ndarray:
         if self.is_mock:
-            return np.asarray([self.mock_value], dtype=np.float32)
+            return np.full(INSPIRE_NUM_MOTORS, self.mock_value, dtype=np.float32)
 
         q = self._read_hardware_positions()
-        virtual_q = self._hardware_to_virtual(q)
 
         self._last_q = q.copy()
         self._last_time = time.monotonic()
 
-        # One logical DoF
-        return np.asarray([virtual_q], dtype=np.float32)
+        return q
 
     def read_current_endeffector_dq(self) -> np.ndarray:
         if self.is_mock:
-            return np.zeros(1, dtype=np.float32)
+            return np.zeros(INSPIRE_NUM_MOTORS, dtype=np.float32)
 
         now = time.monotonic()
         q = self._read_hardware_positions()
 
         if self._last_q is None or self._last_time is None:
-            virtual_dq = 0.0
+            dq = np.zeros(INSPIRE_NUM_MOTORS, dtype=np.float32)
         else:
             dt = max(now - self._last_time, 1e-6)
-            old_virtual = self._hardware_to_virtual(self._last_q)
-            new_virtual = self._hardware_to_virtual(q)
-            virtual_dq = (new_virtual - old_virtual) / dt
+            dq = (q - self._last_q) / dt
 
         self._last_q = q.copy()
         self._last_time = now
 
-        return np.asarray([virtual_dq], dtype=np.float32)
+        return dq
 
     def write_endeffector(
         self,
@@ -255,46 +250,44 @@ class Inspire1:
         time_target=None,
         cmd_target=None,
     ):
+        desired_q = np.asarray(q_target, dtype=np.float32).reshape(-1)
+        if desired_q.shape != (INSPIRE_NUM_MOTORS,) or not np.isfinite(desired_q).all():
+            raise ValueError("Inspire1 requires six finite joint targets in normalized DDS units")
+
         if self.is_mock:
             return
-
-        virtual_target = float(np.asarray(q_target).reshape(-1)[0])
-        desired_q = self._virtual_to_hardware(virtual_target)
 
         with self._lock:
             current_q = self._read_hardware_positions()
 
-            # Rate limitation for the first real-robot tests
-            safe_q = np.clip(
-                desired_q,
-                current_q - self.max_joint_step,
-                current_q + self.max_joint_step,
-            )
+            safe_q = desired_q
+            if self.max_joint_step is not None:
+                safe_q = np.clip(
+                    safe_q,
+                    current_q - self.max_joint_step,
+                    current_q + self.max_joint_step,
+                )
 
             # Never exceed the calibrated trajectory bounds
             lower = np.minimum(self.q_open, self.q_closed)
             upper = np.maximum(self.q_open, self.q_closed)
             safe_q = np.clip(safe_q, lower, upper)
 
-            safe_q[5] = 2.5
-
             self._write_hardware_positions(safe_q)
 
     def go_start(self):
-        value = (
-            self.virtual_open
+        target = (
+            self.q_open
             if self.config.init_opening is None
-            else self.config.init_opening
+            else np.full(INSPIRE_NUM_MOTORS, self.config.init_opening, dtype=np.float32)
         )
-        self.write_endeffector(np.asarray([value], dtype=np.float32))
+        self.write_endeffector(target)
 
     def go_home(self):
-        self.write_endeffector(
-            np.asarray([self.virtual_open], dtype=np.float32)
-        )
+        self.write_endeffector(self.q_open)
 
     def endeffector_ik(self, value):
-        return self._virtual_to_hardware(float(value))
+        return np.asarray(value, dtype=np.float32)
 
     def retarget_to_endeffector(self, value):
-        return self._virtual_to_hardware(float(value))
+        return np.asarray(value, dtype=np.float32)

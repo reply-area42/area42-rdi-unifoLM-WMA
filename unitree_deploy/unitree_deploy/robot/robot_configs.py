@@ -259,7 +259,7 @@ def inspire1_default_factory():
 
             # Normalized Inspire DDS units (1.0 = open, 0.0 = closed).
             # q_closed is a starting point: calibrate it on a real grasp of the object.
-            q_open=(1.0, 1.0, 1.0, 1.0, 1.0, 1.0),
+            q_open=(6.0, 6.0, 6.0, 6.0, 6.0, 6.0),
             q_closed=(0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
 
             # Replace with the raw dataset values
@@ -283,7 +283,7 @@ def inspire1_default_factory():
 
             # Normalized Inspire DDS units (1.0 = open, 0.0 = closed).
             # q_closed is a starting point: calibrate it on a real grasp of the object.
-            q_open=(1.0, 1.0, 1.0, 1.0, 1.0, 1.0),
+            q_open=(6.0, 6.0, 6.0, 6.0, 6.0, 6.0),
             q_closed=(0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
 
             # Replace with the raw dataset values
